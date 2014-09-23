@@ -6,6 +6,14 @@ import math
 
 csv.field_size_limit(1000000000)
 
+def tokenize(text, exclude_chars = string.punctuation):
+    # Convert all words to lower case
+    text = text.lower().translate(None, exclude_chars)
+
+    # Remove whitespace
+    return text.split(' ')
+
+
 def main():
     with open('state-of-the-union.csv', 'rb') as csvfile:
         speechreader = csv.reader(csvfile)
@@ -22,27 +30,8 @@ def main():
             if speech_year == '1960':
                 assigned_speech_id = speech_id
 
-            #
-            # Convert all words to lower case
-            #
-            speech_string = row[1].lower()
-
-            #
-            # Remove punctuation
-            #
-            exclude_chars = set(string.punctuation)
-            
-            speech_list = []
-            for char in speech_string:
-                if char not in exclude_chars:
-                    speech_list.append(char)
-            
-            speech_string = ''.join(speech_list)
-
-            #
-            # Remove whitespace
-            #
-            speech_list = speech_string.split()
+            speech_string = row[1]
+            speech_list = tokenize(speech_string)
 
             #
             # Count term frequencies and document frequencies
