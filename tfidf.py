@@ -11,7 +11,7 @@ def tokenize(text, exclude_chars = string.punctuation):
     text = text.lower().translate(None, exclude_chars)
 
     # Remove whitespace
-    return text.split(' ')
+    return text.replace('\n', ' ').split(" ")
 
 
 def main():
