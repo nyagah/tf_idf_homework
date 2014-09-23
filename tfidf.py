@@ -21,12 +21,19 @@ def main():
 
         all_speeches_df = {}
         all_speeches_tf = {}
+        decades_to_speech_ids = {
+            "190.0":[], "191.0":[], "192.0":[], "193.0":[], "194.0":[], "195.0": [],
+            "196.0":[], "197.0":[], "198.0":[], "199.0":[], "200.0":[], "201.0": []
+        }
 
         speech_id = 0
         assigned_speech_id = 0
 
         for row in speechreader:
             speech_year = row[0]
+            decade_key = str(math.floor(int(speech_year)/10))
+            if decade_key in decades_to_speech_ids:
+                decades_to_speech_ids[decade_key].append(speech_id);
 
             if speech_year == '1960':
                 assigned_speech_id = speech_id
@@ -94,10 +101,10 @@ def main():
         for i in range(0,19):
             print sorted_term_weight_tuples[i][0], ' ', sorted_term_weight_tuples[i][1]
 
-        #for speech_id in all_speeches_tf:
-        #    for term in all_speeches_tf[speech_id]:
-        #        print speech_id, ' ', term, ' ', 
-        #    break
+        for decade, speeches in decades_to_speech_ids.items():
+            decade_tfidf = {}
+            for id in speeches:
+                print ""
 
 if __name__ == '__main__':
     main()
