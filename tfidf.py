@@ -104,20 +104,23 @@ def main():
         for term_weight_tuple in sorted_term_weight_tuples:
             print term_weight_tuple[0], ' ', term_weight_tuple[1]
 
-        decade_tfidf = {}
+        decade_tfidfs = {}
 
         for decade, speeches in decades_to_speech_ids.items():
-            decade_tfidf[decade] = {}
+            decade_tfidfs[decade] = {}
 
             for speech_id in speeches:
                for term in  all_speeches_tfidf[speech_id]:
                    term_tf_idf = all_speeches_tfidf[speech_id][term]
-                   if term in decade_tfidf[decade]:
-                       decade_tfidf[decade][term] += term_tf_idf
+                   if term in decade_tfidfs[decade]:
+                       decade_tfidfs[decade][term] += term_tf_idf
                    else:
-                       decade_tfidf[decade][term]  = term_tf_idf
+                       decade_tfidfs[decade][term]  = term_tf_idf
 
-        print decade_tfidf
+        for decade, term_weight_dict in decade_tfidfs.items():
+            print "\n" + decade
+            for term_weight_tuple in get_top_terms(term_weight_dict):
+                print term_weight_tuple[0], ' ', term_weight_tuple[1]
 
 if __name__ == '__main__':
     main()
