@@ -30,8 +30,7 @@ def main():
             if speech_year == '1960':
                 assigned_speech_id = speech_id
 
-            speech_string = row[1]
-            speech_list = tokenize(speech_string)
+            speech_list = tokenize(row[1])
 
             #
             # Count term frequencies and document frequencies
@@ -86,8 +85,11 @@ def main():
                 term_tf_idf  = all_speeches_tf[speech_id][term]
                 all_speeches_tf[speech_id][term] = term_tf_idf/norm_accum
 
-        for term in all_speeches_tf[assigned_speech_id]:
-            print term, ' ', all_speeches_tf[assigned_speech_id][term]
+        # print top twenty weighted terms from assigned speech
+        sorted_term_weight_tuples = all_speeches_tf[assigned_speech_id].items()
+        sorted_term_weight_tuples.sort(key=lambda item: item[1], reverse=True)
+        for i in range(0,19):
+            print sorted_term_weight_tuples[i][0], ' ', sorted_term_weight_tuples[i][1]
 
         #for speech_id in all_speeches_tf:
         #    for term in all_speeches_tf[speech_id]:
