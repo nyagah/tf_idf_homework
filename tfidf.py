@@ -14,6 +14,10 @@ def tokenize(text, exclude_chars = string.punctuation):
     # Remove whitespace
     return text.replace('\n', ' ').split(" ")
 
+def get_top_terms(dict, num_terms = 20):
+    list = dict.items()
+    list.sort(key=lambda item: item[1], reverse=True)
+    return list[0:(num_terms-1)]
 
 def main():
     with open('state-of-the-union.csv', 'rb') as csvfile:
@@ -95,11 +99,10 @@ def main():
                 all_speeches_tfidf[speech_id][term] = term_tf_idf/norm_accum
 
         # print top twenty weighted terms from assigned speech
-        sorted_term_weight_tuples = all_speeches_tfidf[assigned_speech_id].items()
-        sorted_term_weight_tuples.sort(key=lambda item: item[1], reverse=True)
+        sorted_term_weight_tuples = get_top_terms(all_speeches_tfidf[assigned_speech_id])
 
-        for i in range(0,19):
-            print sorted_term_weight_tuples[i][0], ' ', sorted_term_weight_tuples[i][1]
+        for term_weight_tuple in sorted_term_weight_tuples:
+            print term_weight_tuple[0], ' ', term_weight_tuple[1]
 
         decade_tfidf = {}
 
