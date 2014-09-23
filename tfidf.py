@@ -1,0 +1,109 @@
+#!/usr/bin/python
+
+import csv
+import string
+import math
+
+csv.field_size_limit(1000000000)
+
+def main():
+    with open('state-of-the-union.csv', 'rb') as csvfile:
+        speechreader = csv.reader(csvfile)
+
+        all_speeches_df = {}
+        all_speeches_tf = {}
+
+        speech_id = 0
+        assigned_speech_id = 0
+
+        for row in speechreader:
+            speech_year = row[0]
+
+            if speech_year == '1960':
+                assigned_speech_id = speech_id
+
+            #
+            # Convert all words to lower case
+            #
+            speech_string = row[1].lower()
+
+            #
+            # Remove punctuation
+            #
+            exclude_chars = set(string.punctuation)
+            
+            speech_list = []
+            for char in speech_string:
+                if char not in exclude_chars:
+                    speech_list.append(char)
+            
+            speech_string = ''.join(speech_list)
+
+            #
+            # Remove whitespace
+            #
+            speech_list = speech_string.split()
+
+            #
+            # Count term frequencies and document frequencies
+            #
+            speech_tf = {}
+            for term in speech_list:
+                if term in speech_tf:
+                    speech_tf[term] += 1
+                else: 
+                    speech_tf[term] = 1
+                    
+                    if term in all_speeches_df:
+                        all_speeches_df[term] += 1
+                    else:
+                        all_speeches_df[term] = 1
+
+            all_speeches_tf[speech_id] = speech_tf
+
+            speech_id += 1
+
+        num_docs = speech_id
+
+        #
+        # Compute Inverse Document Frequency (IDF)
+        #
+        for term in all_speeches_df:
+            term_df = all_speeches_df[term]
+            all_speeches_df[term] = math.log(num_docs/term_df)
+
+        #
+        # Compute TF-IDF Vectors
+        #
+        for speech_id in all_speeches_tf:
+            for term in all_speeches_tf[speech_id]:
+                term_tf  = all_speeches_tf[speech_id][term]
+                term_df = all_speeches_df[term]
+                term_tf_idf = term_tf * term_df
+                all_speeches_tf[speech_id][term] = term_tf_idf
+
+        #
+        # Normalize TF-IDF Vectors
+        #
+        for speech_id in all_speeches_tf:
+            norm_accum = 0
+            for term in all_speeches_tf[speech_id]:
+                term_tf_idf  = all_speeches_tf[speech_id][term]
+                norm_accum += term_tf_idf * term_tf_idf
+
+            norm_accum = math.sqrt(norm_accum)
+
+            for term in all_speeches_tf[speech_id]:
+                term_tf_idf  = all_speeches_tf[speech_id][term]
+                all_speeches_tf[speech_id][term] = term_tf_idf/norm_accum
+
+        for term in all_speeches_tf[assigned_speech_id]:
+            print term, ' ', all_speeches_tf[assigned_speech_id][term]
+
+        #for speech_id in all_speeches_tf:
+        #    for term in all_speeches_tf[speech_id]:
+        #        print speech_id, ' ', term, ' ', 
+        #    break
+
+if __name__ == '__main__':
+    main()
