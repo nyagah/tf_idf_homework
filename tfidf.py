@@ -3,6 +3,7 @@
 import csv
 import string
 import math
+import copy
 
 csv.field_size_limit(1000000000)
 
@@ -63,31 +64,33 @@ def main():
         #
         # Compute TF-IDF Vectors
         #
+        all_speeches_tfidf = copy.deepcopy(all_speeches_tf)
         for speech_id in all_speeches_tf:
             for term in all_speeches_tf[speech_id]:
                 term_tf  = all_speeches_tf[speech_id][term]
                 term_df = all_speeches_df[term]
                 term_tf_idf = term_tf * term_df
-                all_speeches_tf[speech_id][term] = term_tf_idf
+                all_speeches_tfidf[speech_id][term] = term_tf_idf
 
         #
         # Normalize TF-IDF Vectors
         #
-        for speech_id in all_speeches_tf:
+        for speech_id in all_speeches_tfidf:
             norm_accum = 0
-            for term in all_speeches_tf[speech_id]:
-                term_tf_idf  = all_speeches_tf[speech_id][term]
+            for term in all_speeches_tfidf[speech_id]:
+                term_tf_idf  = all_speeches_tfidf[speech_id][term]
                 norm_accum += term_tf_idf * term_tf_idf
 
             norm_accum = math.sqrt(norm_accum)
 
-            for term in all_speeches_tf[speech_id]:
-                term_tf_idf  = all_speeches_tf[speech_id][term]
-                all_speeches_tf[speech_id][term] = term_tf_idf/norm_accum
+            for term in all_speeches_tfidf[speech_id]:
+                term_tf_idf  = all_speeches_tfidf[speech_id][term]
+                all_speeches_tfidf[speech_id][term] = term_tf_idf/norm_accum
 
         # print top twenty weighted terms from assigned speech
-        sorted_term_weight_tuples = all_speeches_tf[assigned_speech_id].items()
+        sorted_term_weight_tuples = all_speeches_tfidf[assigned_speech_id].items()
         sorted_term_weight_tuples.sort(key=lambda item: item[1], reverse=True)
+
         for i in range(0,19):
             print sorted_term_weight_tuples[i][0], ' ', sorted_term_weight_tuples[i][1]
 
