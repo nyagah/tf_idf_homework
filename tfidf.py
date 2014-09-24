@@ -7,6 +7,10 @@ import copy
 
 csv.field_size_limit(1000000000)
 
+#
+# Convert string to lowercase, remove punctuation and split
+# on space
+#
 def tokenize(text, exclude_chars = string.punctuation):
     # Convert all words to lower case
     text = text.lower().translate(None, exclude_chars)
@@ -14,11 +18,19 @@ def tokenize(text, exclude_chars = string.punctuation):
     # Remove whitespace
     return text.replace('\n', ' ').split(" ")
 
+
+#
+# Sort dictionary on values and return top k items
+#
 def get_top_terms(dict, num_terms = 20):
     list = dict.items()
     list.sort(key=lambda item: item[1], reverse=True)
-    return list[0:(num_terms-1)]
+    return list[0:num_terms]
 
+
+#
+# Main function
+#
 def main():
     with open('state-of-the-union.csv', 'rb') as csvfile:
         speechreader = csv.reader(csvfile)
@@ -34,6 +46,8 @@ def main():
         assigned_speech_id = 0
 
         for row in speechreader:
+            
+            # Prepare decade to speech_ids mapping
             speech_year = row[0]
             decade_key = str(math.floor(int(speech_year)/10))
             if decade_key in decades_to_speech_ids:
@@ -44,9 +58,7 @@ def main():
 
             speech_list = tokenize(row[1])
 
-            #
             # Count term frequencies and document frequencies
-            #
             speech_tf = {}
             for term in speech_list:
                 if term in speech_tf:
@@ -65,16 +77,12 @@ def main():
 
         num_docs = speech_id
 
-        #
         # Compute Inverse Document Frequency (IDF)
-        #
         for term in all_speeches_df:
             term_df = all_speeches_df[term]
             all_speeches_df[term] = math.log(num_docs/term_df)
 
-        #
         # Compute TF-IDF Vectors
-        #
         all_speeches_tfidf = copy.deepcopy(all_speeches_tf)
         for speech_id in all_speeches_tf:
             for term in all_speeches_tf[speech_id]:
@@ -83,9 +91,7 @@ def main():
                 term_tf_idf = term_tf * term_df
                 all_speeches_tfidf[speech_id][term] = term_tf_idf
 
-        #
         # Normalize TF-IDF Vectors
-        #
         for speech_id in all_speeches_tfidf:
             norm_accum = 0
             for term in all_speeches_tfidf[speech_id]:
@@ -98,17 +104,23 @@ def main():
                 term_tf_idf  = all_speeches_tfidf[speech_id][term]
                 all_speeches_tfidf[speech_id][term] = term_tf_idf/norm_accum
 
-        # print top twenty weighted terms from assigned speech
+        # Extract top 20 terms from assigned speech
         sorted_term_weight_tuples = get_top_terms(all_speeches_tfidf[assigned_speech_id])
 
+        outfile = open('output.txt', 'w')
+        outfile.write("#####################################\n")
+        outfile.write("######### Top 20 Terms in 1960 ######\n")
+        outfile.write("#####################################\n")
         for term_weight_tuple in sorted_term_weight_tuples:
-            print term_weight_tuple[0], ' ', term_weight_tuple[1]
+            outfile.write('%-20s %s \n' % (str(term_weight_tuple[0]), str(term_weight_tuple[1])) )
+        outfile.write('\n\n')
 
+        # Extract top 20 terms from each decade since 1900
         decade_tfidfs = {}
 
         for decade, speeches in decades_to_speech_ids.items():
             decade_tfidfs[decade] = {}
-
+            
             for speech_id in speeches:
                for term in  all_speeches_tfidf[speech_id]:
                    term_tf_idf = all_speeches_tfidf[speech_id][term]
@@ -118,9 +130,14 @@ def main():
                        decade_tfidfs[decade][term]  = term_tf_idf
 
         for decade, term_weight_dict in decade_tfidfs.items():
-            print "\n" + decade
+            outfile.write("########################################################\n")
+            outfile.write('######### Top 20 Terms in decade starting ' + decade.replace('.', '') + ' #########\n')
+            outfile.write("########################################################\n")
             for term_weight_tuple in get_top_terms(term_weight_dict):
-                print term_weight_tuple[0], ' ', term_weight_tuple[1]
+                outfile.write('%-20s %s \n' % (str(term_weight_tuple[0]), str(term_weight_tuple[1])) )
+            outfile.write('\n\n')
+
+        outfile.close()
 
 if __name__ == '__main__':
     main()
